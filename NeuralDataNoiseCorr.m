@@ -1,5 +1,4 @@
-function [NoiseCorrelation, NoiseResp, RoiKeep ]...
-    = NeuralDataNoiseCorr(EventLockedDat, TimeLength, NumRois, LR, neuropil)
+function [NoiseCorrelation, NoiseResp, RoiKeep ]= NeuralDataNoiseCorr(EventLockedDat, TimeLength, NumRois, LR, neuropil)
 %NeuralDataNoiseCorr takes in as input the eventLockedData, length of time
 %and number of Rois. It returns the noise correlation matrix across all
 %trials as well as the noise response matrix for the left and right trials.
