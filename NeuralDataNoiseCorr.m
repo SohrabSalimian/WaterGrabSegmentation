@@ -27,17 +27,19 @@ Shape = size(EvntLockedMat);
 %PSTH by Cluster
 %Getting unique clusterIds and total number of clusters
 Clusts = unique(ClusterIds);
+Clusts = Clusts(~isnan(Clusts)); 
 NumClusts = length(Clusts(~isnan(Clusts)));
 
 %Storing the PSTH for each cluster within an array. 
-ClustNoiseResp = zeros(Shape(1), Shape(2), shape(3));
+ClustNoiseResp = zeros(Shape(2), Shape(3));
 for i=1:NumClusts
-    Cluster = ClusterIds == Clusts(i);
+    Cluster = find(ClusterIds == Clusts(i));
     PSTH = mean(EvntLockedMat(:, :, Cluster), [1, 3]);
+    
     Responses = sum(EvntLockedMat(:, :, Cluster), 1);
     Diff = Responses - PSTH;
     Diff(Diff < 0) = 0;
-    ClustNoiseResp(:, :, Cluster) = Diff;
+    ClustNoiseResp(:, Cluster) = Diff;
     
 end
 
@@ -57,5 +59,5 @@ end
 % LeftNoiseResp(LeftNoiseResp < 0) = 0;
 % 
 % NoiseResp = cat(1, RightNoiseResp, LeftNoiseResp);
-NoiseCorrelation = corrcoef(ClustNoiseResp);
+NoiseCorrelation = corrcoef(ClustNoiseResp');
 end
