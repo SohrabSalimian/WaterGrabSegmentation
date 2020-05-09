@@ -1,5 +1,5 @@
 function [MeanCorrDist, Edges, RoiDist] = NeuroDistCorr(NoiseCorr, RoiLocations, SigRois, BinWidth)
-%NeuroPilDistCorr
+%NeuroPilDistCorr Distance calculate
 %Takes as input a noise correlation matrix, roi locations,significant rois, 
 %BinWidth and returns a bar plot of the noise correlations binned by distance. 
 
