@@ -1,4 +1,5 @@
-function [NoiseCorrelation, NoiseResp, RoiKeep ]= NeuralDataNoiseCorr(EventLockedDat, TimeLength, NumRois, LR, neuropil)
+function [NoiseCorrelation, ClustNoiseResp, RoiKeep ]= NeuralDataNoiseCorr(EventLockedDat, TimeLength,...
+    NumRois, LR, ClusterIds, neuropil)
 %NeuralDataNoiseCorr takes in as input the eventLockedData, length of time
 %and number of Rois. It returns the noise correlation matrix across all
 %trials as well as the noise response matrix for the left and right trials.
@@ -22,22 +23,39 @@ RoiRemoved = (RoiSums < thresh);
 [~, RoiKeep] = find(RoiRemoved == 0);
 EvntLockedMat = EvntLockedMat(:, RoiKeep, :);
 
+Shape = size(EvntLockedMat);
+%PSTH by Cluster
+%Getting unique clusterIds and total number of clusters
+Clusts = unique(ClusterIds);
+NumClusts = length(Clusts(~isnan(Clusts)));
 
-RightTrials = EvntLockedMat(:, :, Right);
-LeftTrials = EvntLockedMat(:, :, Left);
-RightTrialAvg = mean(RightTrials, [1, 3]); 
-LeftTrialAvg = mean(LeftTrials, [1, 3]);
-
-RightTrialFR = squeeze(mean(RightTrials, 1))';
-LeftTrialFR = squeeze(mean(LeftTrials, 1))';
-
-
-RightNoiseResp = reshape(RightTrialFR - RightTrialAvg, [], length(RoiKeep));
-RightNoiseResp(RightNoiseResp < 0) = 0;
-LeftNoiseResp = reshape(LeftTrialFR - LeftTrialAvg, [], length(RoiKeep));
-LeftNoiseResp(LeftNoiseResp < 0) = 0;
-
-NoiseResp = cat(1, RightNoiseResp, LeftNoiseResp);
-NoiseCorrelation = corrcoef(NoiseResp);
+%Storing the PSTH for each cluster within an array. 
+ClustNoiseResp = zeros(Shape(1), Shape(2), shape(3));
+for i=1:NumClusts
+    Cluster = ClusterIds == Clusts(i);
+    PSTH = mean(EvntLockedMat(:, :, Cluster), [1, 3]);
+    Responses = sum(EvntLockedMat(:, :, Cluster), 1);
+    Diff = Responses - PSTH;
+    Diff(Diff < 0) = 0;
+    ClustNoiseResp(:, :, Cluster) = Diff;
+    
 end
 
+
+% RightTrials = EvntLockedMat(:, :, Right);
+% LeftTrials = EvntLockedMat(:, :, Left);
+% RightTrialAvg = mean(RightTrials, [1, 3]); 
+% LeftTrialAvg = mean(LeftTrials, [1, 3]);
+% 
+% RightTrialFR = squeeze(mean(RightTrials, 1))';
+% LeftTrialFR = squeeze(mean(LeftTrials, 1))';
+% 
+% 
+% RightNoiseResp = reshape(RightTrialFR - RightTrialAvg, [], length(RoiKeep));
+% RightNoiseResp(RightNoiseResp < 0) = 0;
+% LeftNoiseResp = reshape(LeftTrialFR - LeftTrialAvg, [], length(RoiKeep));
+% LeftNoiseResp(LeftNoiseResp < 0) = 0;
+% 
+% NoiseResp = cat(1, RightNoiseResp, LeftNoiseResp);
+NoiseCorrelation = corrcoef(ClustNoiseResp);
+end
